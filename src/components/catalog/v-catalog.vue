@@ -7,12 +7,38 @@
        <!--  это и есть наша ссылка на другую страницу (на корзину) -->
         
         <h1> Catalog </h1> 
-        <v-select
-            :selected="selected"
-            :options="CATEGORIES"
-            @select="sortByCategories"
-            :isExpanded="IS_DESKTOP"
-        />
+        <div class="filters">
+            <v-select
+                :selected="selected"
+                :options="CATEGORIES"
+                @select="sortByCategories"
+                :isExpanded="IS_DESKTOP"
+            />
+            <div class="range-slider">
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="9000" 
+                    step="100"
+                    v-model.number="minPrice"
+                    @change="setRangeSlider"
+                >
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="9000" 
+                    step="100"
+                    v-model.number="maxPrice"
+                    @change="setRangeSlider"
+                >
+            </div>
+            <div class="range-values">
+                <p> Min: {{minPrice}} </p>
+                <p> Max: {{maxPrice}} </p>
+            </div>
+        </div>
+
+        
             
         <div class="v-catalog__list">
 
@@ -47,6 +73,8 @@
             return {
                 selected: 'Choose the category: ',
                 sortedProducts: [],
+                minPrice: 0,
+                maxPrice: 9000
             }
         },
         computed: { //чтобы в цикле v-for не писать this.$store.state.products, мы вписываем сюда геттер из стора
@@ -78,21 +106,56 @@
                 console.log(data);
             },
             sortByCategories(option) {
-                // this.SORT_BY_CATEGORIES(option);
-                this.sortedProducts = [];
-                this.sortedProducts = this.PRODUCTS.filter((item)=> {
-                   return item.category === option.name 
-                })
+            // this.sortedProducts = [];
+            // this.sortedProducts = this.PRODUCTS.filter((item)=> {
+            //    return item.category === option.name 
+            // })
+            this.sortedProducts = [...this.PRODUCTS];
+            this.sortedProducts = this.sortedProducts.filter((item)=> {
+                return (
+                    item.price >= this.minPrice && item.price <= this.maxPrice 
+                )
+                /*  т.е в этом методе я клонирую мой геттер PRODUCTS в sortedProducts. и при каждом срабатывании метода @change в инпутах
+                type="range" я фильтрую продукты в соответсвии с ценой */   
+            });
+            if (option) {
+                this.sortedProducts = this.sortedProducts.filter((item)=> {
+                    return item.category === option.name; 
+                });
+                this.selected = option.name;
+                /* if (option.name === 'Все') {
+                    this.sortedProducts = this.sortedProducts.filter((item)=> {
+                        return (
+                            item.price >= this.minPrice && 
+                            item.price <= this.maxPrice 
+                        ) 
+                    });
+                }  */
+            } 
+                
+            
+            
+        },
+            setRangeSlider() {
+                if (this.minPrice > this.maxPrice) {
+                    let temp = this.maxPrice;
+                    this.maxPrice = this.minPrice;
+                    this.minPrice = temp;
+                    // это сделалось для того, чтобы при перемещении ползунка максимальная цена не могла стать меньше минимальной
+                }
+                this.sortByCategories();
             }
+
         },
         mounted() { // хук, когда отрендерился весь html и появились реактивные связки
             this.GET_PRODUCTS_FROM_API() 
             //метод  GET_PRODUCTS_FROM_API() будет вызван, когда компонент полностью загрузится
-                .then((products)=> {
-                    if (products.data) {
-                        console.log('Data arrived!')
-                    }
-                })
+            .then((products)=> {
+                if (products.data) {
+                    console.log('Data arrived!');
+                    this.sortByCategories();
+                }
+            })
         }
     }
 </script>
@@ -116,6 +179,29 @@
             transition: 0.3s linear;
             &:hover{
                 background-color: rgba($color: #6e0505, $alpha: 5.0);
+            }
+        }
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .range-slider {
+            width: 200px;
+            margin: auto 16px;
+            /*auto означает, что верхний и нижний отстуаы будут рассчитаны автоматически браузером, а справа и слева по 16 пискелей  */
+            text-align: center;
+            position: relative;
+            svg, input[type=range] {
+                position: absolute;
+                left: 0;
+                bottom: 0;
+            }
+            input[type=range]::-webkit-slider-thumb {
+                z-index: 2;
+                position: relative;
+                top: 2px;
+                left: -7px;
             }
         }
     }
