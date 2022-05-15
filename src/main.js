@@ -1,13 +1,14 @@
-import Vue from 'vue'
-import App from './App.vue'
-import store from './vuex/store.js'
-import router from "./router/router.js"
+import Vue from 'vue';
+import App from './App.vue';
+import store from './vuex/store.js';
+import router from './router/router.js';
+import 'material-design-icons-iconfont';
 // import './assets/styles/style.scss'
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 new Vue({
-  render: h => h(App),
-  store, 
-  router
-}).$mount('#app')
+    render: (h) => h(App),
+    store,
+    router,
+}).$mount('#app');
